@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+    td, th {padding:5px;min-width:90px;max-width:200px; text-align:start;}
+    .btn {padding:4px; border:1px solid #333; background-color: #eee; border-radius: 2px; margin:5px; cursor:pointer;}
+    </style>
+</head>
+<body>
+<h2>Список пользователей</h2>
+<form name="taskForm">
+    <input type="hidden" name="id" value="0" />
+    <p>
+        <label>Title:</label><br>
+        <input name="title" />
+    </p>
+    <p>
+        <label>Description:</label><br>
+        <input name="description"/>
+    </p>
+    <p>
+        <label>IsCompleted:</label><br>
+        <input name="isCompleted" type="checkbox" />
+    </p>
+    <p>
+        <button id="submitBtn" type="submit">Сохранить</button>
+        <button id="resetBtn">Сбросить</button>
+    </p>
+</form>
+<table>
+    <thead><tr><th>Id</th><th>Title</th><th>Description</th><th>Completed</th><th></th></tr></thead>
+    <tbody></tbody>
+</table>
+</body>
+<script>
+    const tbody = document.querySelector("tbody");
+    async function GetTasks() {
+    // отправляет запрос и получаем ответ
+        const response = await fetch("/tasks", {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+        });
+        // если запрос прошел нормально
+        if (response.ok === true) {
+        // получаем данные
+        const tasks = await response.json(); 
+        tasks.data.forEach(task => {
+                // добавляем полученные элементы в таблицу
+                tbody.append(row(task));
+            });
+        }
+    }
+    // Получение одного пользователя
+    async function GetTask(id) {
+        const response = await fetch("/tasks/" + id, {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+        });
+        if (response.ok === true) {
+            const task = await response.json();
+            const form = document.forms["taskForm"];
+            form.elements["id"].value = task.data._id;
+            form.elements["title"].value = task.data.title;
+            form.elements["description"].value = task.data.description;
+            form.elements["isCompleted"].checked = Boolean(task.data.isCompleted);
+        }
+    }
+    // Добавление пользователя
+    async function CreateTask(taskTitle, taskDescription, taskIsCompleted) {
+        const response = await fetch("/tasks", {
+            method: "POST",
+            headers: { "Accept": "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title: taskTitle,
+                description: taskDescription,
+                isCompleted : Boolean(taskIsCompleted)
+            })
+        });
+        if (response.ok === true) {
+            const task = await response.json();
+            reset();
+            tbody.append(row(task.data));
+        }
+    }
+    async function EditTask(taskId, taskTitle, taskDescription, taskIsCompleted) {
+        const response = await fetch("/tasks/" + taskId, {
+            method: "PUT",
+            headers: { "Accept": "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title: taskTitle,
+                description: taskDescription,
+                isCompleted : Boolean(taskIsCompleted)
+            })
+        });
+        if (response.ok === true) {
+            const task = await response.json();
+            reset();
+            document.querySelector(`tr[data-rowid="${task.data._id}"]`).replaceWith(row(task.data));
+        }
+    }
+    async function DeleteTask(id) {
+        const response = await fetch("/tasks/" + id, {
+            method: "DELETE",
+            headers: { "Accept": "application/json",
+                "Access-Control-Allow-Origin" : "*", 
+                "Access-Control-Allow-Credentials" : true 
+             }
+        });
+        if (response.ok === true) {
+            document.querySelector(`tr[data-rowid="${id}"]`).remove();
+        }
+    }
+        
+    function reset() {
+        const form = document.forms["taskForm"];
+        console.log(form);
+        form.reset();
+        form.elements["id"].value = 0;
+    }
+    function row(task) {
+        const tr = document.createElement("tr");
+        tr.setAttribute("data-rowid", task._id);
+            
+        const idTd = document.createElement("td");
+        idTd.append(task._id);
+        tr.append(idTd);
+            
+        const titleTd = document.createElement("td");
+        titleTd.append(task.title);
+        tr.append(titleTd);
+            
+        const descriptionTd = document.createElement("td");
+        descriptionTd.append(task.description);
+        tr.append(descriptionTd);
+    
+        const isCompletedTd = document.createElement("td");
+        isCompletedTd.append(task.isCompleted);
+        tr.append(isCompletedTd);    
+            
+        const linksTd = document.createElement("td");
+            
+        const editLink = document.createElement("a");
+        editLink.setAttribute("data-id", task._id);
+        editLink.setAttribute("class", "btn");
+        editLink.append("Изменить");
+        editLink.addEventListener("click", e => {
+            e.preventDefault();
+            GetTask(task._id);
+        });
+        linksTd.append(editLink);
+            
+        const removeLink = document.createElement("a");
+        removeLink.setAttribute("data-id", task._id);
+        removeLink.setAttribute("class", "btn");
+        removeLink.append("Удалить");
+        removeLink.addEventListener("click", e => {
+            e.preventDefault();
+            DeleteTask(task._id);
+        });
+            
+        linksTd.append(removeLink);
+        tr.appendChild(linksTd);
+            
+        return tr;
+    }
+    document.getElementById("resetBtn").addEventListener("click", e => {
+        e.preventDefault();
+        reset();
+    });
+        
+    document.forms["taskForm"].addEventListener("submit", e => {
+        e.preventDefault();
+        const form = document.forms["taskForm"];
+        const id = form.elements["id"].value;
+        const title = form.elements["title"].value;
+        const description = form.elements["description"].value;
+        const isCompleted = form.elements["isCompleted"].checked;
+        if (id == 0)
+            CreateTask(title, description, isCompleted);
+        else
+            EditTask(id, title, description, isCompleted);
+    });
+        
+    // загрузка пользователей
+    GetTasks();
+    </script>
+</html>
