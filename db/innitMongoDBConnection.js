@@ -8,7 +8,7 @@ export const initMongoDBConnection = async () =>{
         const url = env("MONGODB_URL");
         const name = env("MONGODB_NAME");
 
-        const DB_HOST = `mongodb+srv://${user}:${password}@${url}/${name}?retryWrites=true&w=majority&appName=DragonData`;
+        const DB_HOST = `mongodb+srv://${user}:${password}@${url}/${name}?retryWrites=true&w=majority&appName=Cluster0`;
 
 
         await mongoose.connect(DB_HOST, {
