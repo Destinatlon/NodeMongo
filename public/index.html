@@ -7,7 +7,7 @@
     </style>
 </head>
 <body>
-<h2>Список пользователей</h2>
+<h2>Task</h2>
 <form name="taskForm">
     <input type="hidden" name="id" value="0" />
     <p>
@@ -23,8 +23,8 @@
         <input name="isCompleted" type="checkbox" />
     </p>
     <p>
-        <button id="submitBtn" type="submit">Сохранить</button>
-        <button id="resetBtn">Сбросить</button>
+        <button id="submitBtn" type="submit">Save</button>
+        <button id="resetBtn">Reset</button>
     </p>
 </form>
 <table>
@@ -142,7 +142,7 @@
         const editLink = document.createElement("a");
         editLink.setAttribute("data-id", task._id);
         editLink.setAttribute("class", "btn");
-        editLink.append("Изменить");
+        editLink.append("Change");
         editLink.addEventListener("click", e => {
             e.preventDefault();
             GetTask(task._id);
@@ -152,7 +152,7 @@
         const removeLink = document.createElement("a");
         removeLink.setAttribute("data-id", task._id);
         removeLink.setAttribute("class", "btn");
-        removeLink.append("Удалить");
+        removeLink.append("Delete");
         removeLink.addEventListener("click", e => {
             e.preventDefault();
             DeleteTask(task._id);
